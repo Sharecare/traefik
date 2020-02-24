@@ -1,4 +1,4 @@
-module github.com/containous/traefik/v2
+module github.com/Sharecare/traefik/v2
 
 go 1.13
 
