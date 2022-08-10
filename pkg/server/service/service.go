@@ -25,7 +25,9 @@ import (
 	"github.com/traefik/traefik/v2/pkg/server/provider"
 	"github.com/traefik/traefik/v2/pkg/server/service/loadbalancer/mirror"
 	"github.com/traefik/traefik/v2/pkg/server/service/loadbalancer/wrr"
-	"github.com/vulcand/oxy/roundrobin"
+	"github.com/traefik/traefik/v2/pkg/server/service/roundrobin"
+	"github.com/traefik/traefik/v2/pkg/server/service/state"
+	rr "github.com/vulcand/oxy/roundrobin"
 	"github.com/vulcand/oxy/roundrobin/stickycookie"
 )
 
@@ -319,7 +321,7 @@ func (m *Manager) getLoadBalancer(ctx context.Context, serviceName string, servi
 	if service.Sticky != nil && service.Sticky.Cookie != nil {
 		cookieName = cookie.GetName(service.Sticky.Cookie.Name, serviceName)
 
-		opts := roundrobin.CookieOptions{
+		opts := rr.CookieOptions{
 			HTTPOnly: service.Sticky.Cookie.HTTPOnly,
 			Secure:   service.Sticky.Cookie.Secure,
 			SameSite: convertSameSite(service.Sticky.Cookie.SameSite),
@@ -331,9 +333,13 @@ func (m *Manager) getLoadBalancer(ctx context.Context, serviceName string, servi
 			return nil, err
 		}
 
-		options = append(options, roundrobin.EnableStickySession(roundrobin.NewStickySessionWithOptions(cookieName, opts).SetCookieValue(cv)))
+		options = append(options, roundrobin.EnableStickySession(rr.NewStickySessionWithOptions(cookieName, opts).SetCookieValue(cv)))
 
 		logger.Debugf("Sticky session cookie name: %v", cookieName)
+	}
+
+	if lb, ok := state.LoadBalancer[serviceName]; ok {
+		options = append(options, roundrobin.Index(lb.GetIndex()))
 	}
 
 	lb, err := roundrobin.New(fwd, options...)
@@ -346,6 +352,7 @@ func (m *Manager) getLoadBalancer(ctx context.Context, serviceName string, servi
 		return nil, fmt.Errorf("error configuring load balancer for service %s: %w", serviceName, err)
 	}
 
+	state.LoadBalancer[serviceName] = lb
 	return lbsu, nil
 }
 

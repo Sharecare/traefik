@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/traefik/traefik/v2/pkg/config/runtime"
 	"github.com/traefik/traefik/v2/pkg/testhelpers"
-	"github.com/vulcand/oxy/roundrobin"
+	"github.com/traefik/traefik/v2/pkg/server/service/roundrobin"
 )
 
 const (

@@ -42,7 +42,7 @@ import (
 	traefiktls "github.com/traefik/traefik/v2/pkg/tls"
 	"github.com/traefik/traefik/v2/pkg/types"
 	"github.com/traefik/traefik/v2/pkg/version"
-	"github.com/vulcand/oxy/roundrobin"
+	"github.com/traefik/traefik/v2/pkg/server/service/roundrobin"
 )
 
 func main() {
