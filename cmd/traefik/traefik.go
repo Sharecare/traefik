@@ -45,7 +45,7 @@ import (
 	"github.com/traefik/traefik/v2/pkg/tracing/jaeger"
 	"github.com/traefik/traefik/v2/pkg/types"
 	"github.com/traefik/traefik/v2/pkg/version"
-	"github.com/vulcand/oxy/roundrobin"
+	"github.com/traefik/traefik/v2/pkg/server/service/roundrobin"
 )
 
 func main() {
