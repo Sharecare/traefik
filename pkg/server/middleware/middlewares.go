@@ -54,6 +54,11 @@ func NewBuilder(configs map[string]*runtime.MiddlewareInfo, serviceBuilder servi
 	return &Builder{configs: configs, serviceBuilder: serviceBuilder, pluginBuilder: pluginBuilder}
 }
 
+// GetConfigs is a getter for the config map.
+func (b *Builder) GetConfigs() map[string]*runtime.MiddlewareInfo {
+	return b.configs
+}
+
 // BuildChain creates a middleware chain.
 func (b *Builder) BuildChain(ctx context.Context, middlewares []string) *alice.Chain {
 	chain := alice.New()
@@ -234,8 +239,15 @@ func (b *Builder) buildConstructor(ctx context.Context, middlewareName string) (
 		if middleware != nil {
 			return nil, badConf
 		}
+
+		var qualifiedWhiteListNames []string
+		for _, name := range config.IPWhiteList.AppendWhiteLists {
+			qualifiedWhiteListNames = append(qualifiedWhiteListNames, provider.GetQualifiedName(ctx, name))
+		}
+		config.IPWhiteList.AppendWhiteLists = qualifiedWhiteListNames
+
 		middleware = func(next http.Handler) (http.Handler, error) {
-			return ipwhitelist.New(ctx, next, *config.IPWhiteList, middlewareName)
+			return ipwhitelist.New(ctx, next, *config.IPWhiteList, b, middlewareName)
 		}
 	}
 
