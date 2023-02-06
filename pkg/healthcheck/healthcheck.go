@@ -18,7 +18,7 @@ import (
 	"github.com/traefik/traefik/v2/pkg/log"
 	"github.com/traefik/traefik/v2/pkg/metrics"
 	"github.com/traefik/traefik/v2/pkg/safe"
-	"github.com/vulcand/oxy/v2/roundrobin"
+	"github.com/traefik/traefik/v2/pkg/server/service/roundrobin"
 )
 
 const (
