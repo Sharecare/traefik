@@ -32,7 +32,7 @@ type MiddlewareSpec struct {
 	ReplacePath       *dynamic.ReplacePath       `json:"replacePath,omitempty"`
 	ReplacePathRegex  *dynamic.ReplacePathRegex  `json:"replacePathRegex,omitempty"`
 	Chain             *Chain                     `json:"chain,omitempty"`
-	IPWhiteList       *dynamic.IPWhiteList       `json:"ipWhiteList,omitempty"`
+	IPWhiteList       *IPWhiteList               `json:"ipWhiteList,omitempty"`
 	Headers           *dynamic.Headers           `json:"headers,omitempty"`
 	Errors            *ErrorPage                 `json:"errors,omitempty"`
 	RateLimit         *RateLimit                 `json:"rateLimit,omitempty"`
@@ -85,6 +85,15 @@ type CircuitBreaker struct {
 	FallbackDuration *intstr.IntOrString `json:"fallbackDuration,omitempty" toml:"fallbackDuration,omitempty" yaml:"fallbackDuration,omitempty" export:"true"`
 	// RecoveryDuration is the duration for which the circuit breaker will try to recover (as soon as it is in recovering state).
 	RecoveryDuration *intstr.IntOrString `json:"recoveryDuration,omitempty" toml:"recoveryDuration,omitempty" yaml:"recoveryDuration,omitempty" export:"true"`
+}
+
+// +k8s:deepcopy-gen=true
+
+// IPWhiteList holds the ip white list configuration.
+type IPWhiteList struct {
+	AppendWhiteLists []MiddlewareRef     `json:"appendWhiteLists,omitempty"`
+	SourceRange      []string            `json:"sourceRange,omitempty"`
+	IPStrategy       *dynamic.IPStrategy `json:"ipStrategy,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
