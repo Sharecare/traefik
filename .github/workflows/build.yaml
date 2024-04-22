@@ -37,7 +37,7 @@ jobs:
           name: webui.tar.gz
           path: webui.tar.gz
 
-  build:
+  build-binary:
     runs-on: ubuntu-22.04
     needs:
       - build-webui
@@ -60,6 +60,9 @@ jobs:
 
       - name: Untar webui
         run: tar xvf webui.tar.gz
+
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF#refs/*/}-PL" >> $GITHUB_ENV
 
       - name: Build
         run: make binary
