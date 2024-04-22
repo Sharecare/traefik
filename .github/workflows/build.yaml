@@ -3,7 +3,7 @@ name: Build Binaries
 on:
   push:
     # Publish semver tags as releases.
-    tags: [ 'v*.*' ]
+    tags: [ 'v*.*.*' ]
 
 env:
   GO_VERSION: '1.22'
