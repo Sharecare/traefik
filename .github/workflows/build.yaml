@@ -80,7 +80,7 @@ jobs:
   build-docker:
     runs-on: ubuntu-22.04
     needs:
-      - build
+      - build-binary
     permissions:
       contents: read
       packages: write
