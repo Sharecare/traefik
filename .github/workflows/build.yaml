@@ -64,11 +64,15 @@ jobs:
       - name: Build
         run: make binary
 
+      - name: Tar binary
+        run: |
+          tar czvf traefik-binary.tar.gz ./dist
+
       - name: Artifact binary
         uses: actions/upload-artifact@v4
         with:
-          name: traefik-binary
-          path: dist/traefik
+          name: traefik-binary.tar.gz
+          path: traefik-binary.tar.gz
 
   build-docker:
     runs-on: ubuntu-22.04
@@ -96,8 +100,10 @@ jobs:
       - name: Artifact binary
         uses: actions/download-artifact@v4
         with:
-          name: traefik-binary
-          path: dist/traefik
+          name: traefik-binary.tar.gz
+
+      - name: Untar binary
+        run: tar xvf traefik-binary.tar.gz
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
