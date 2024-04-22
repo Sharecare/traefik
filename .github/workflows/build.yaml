@@ -38,27 +38,15 @@ jobs:
           path: webui.tar.gz
 
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ ubuntu-22.04 ]
+    runs-on: ubuntu-22.04
     needs:
       - build-webui
-    permissions:
-      contents: read
-      packages: write
-      # This is used to complete the identity challenge
-      # with sigstore/fulcio when running outside of PRs.
-      id-token: write
 
     steps:
       - name: Check out code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Set version
-        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
@@ -76,6 +64,41 @@ jobs:
       - name: Build
         run: make binary
 
+      - name: Artifact binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: traefik-binary
+          path: dist/traefik
+
+  build-docker:
+    runs-on: ubuntu-22.04
+    needs:
+      - build
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Artifact binary
+        uses: actions/download-artifact@v4
+        with:
+          name: traefik-binary
+          path: dist/traefik
+
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
@@ -84,7 +107,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the Docker image
-        #working-directory: ./awsconfig
         run: |
           docker build . --tag ${{ env.REPO }}:${{ env.VERSION }}
           docker push ${{ env.REPO }}:${{ env.VERSION }}
