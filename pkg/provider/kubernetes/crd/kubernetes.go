@@ -875,7 +875,7 @@ func createChainMiddleware(ctx context.Context, namespace string, chain *traefik
 	return &dynamic.Chain{Middlewares: mds}
 }
 
-func createIPWhiteListMiddleware(ctx context.Context, namespace string, whitelist *v1alpha1.IPWhiteList) *dynamic.IPWhiteList {
+func createIPWhiteListMiddleware(ctx context.Context, namespace string, whitelist *traefikv1alpha1.IPWhiteList) *dynamic.IPWhiteList {
 	if whitelist == nil {
 		return nil
 	}
