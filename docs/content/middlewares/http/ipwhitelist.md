@@ -122,7 +122,7 @@ labels:
 # Accepts request from defined IPs in another whitelist
 [http.middlewares]
   [http.middlewares.test-ipwhitelist.ipWhiteList]
-    aooendWhiteLists = ["other-whitelist"]
+    appendWhiteLists = ["other-whitelist"]
 ```
 
 ```yaml tab="File (YAML)"
