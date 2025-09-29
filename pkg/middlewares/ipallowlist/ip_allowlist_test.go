@@ -8,7 +8,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/traefik/traefik/v2/pkg/config/dynamic"
+	"github.com/traefik/traefik/v2/pkg/config/runtime"
 )
+
+type AllowListBuilder struct{}
+
+func (b AllowListBuilder) GetConfigs() map[string]*runtime.MiddlewareInfo {
+	configs := make(map[string]*runtime.MiddlewareInfo)
+
+	allowlist := dynamic.Middleware{IPAllowList: &dynamic.IPAllowList{SourceRange: []string{"20.20.20.20"}}}
+	configs["other-allowlist"] = &runtime.MiddlewareInfo{Middleware: &allowlist}
+	configs["not-allowlist"] = &runtime.MiddlewareInfo{Middleware: &dynamic.Middleware{}}
+
+	return configs
+}
 
 func TestNewIPAllowLister(t *testing.T) {
 	testCases := []struct {
@@ -20,6 +33,20 @@ func TestNewIPAllowLister(t *testing.T) {
 			desc: "invalid IP",
 			allowList: dynamic.IPAllowList{
 				SourceRange: []string{"foo"},
+			},
+			expectedError: true,
+		},
+		{
+			desc: "non-existent append allowlist",
+			allowList: dynamic.IPAllowList{
+				AppendAllowLists: []string{"bad-allowlist"},
+			},
+			expectedError: true,
+		},
+		{
+			desc: "invalid append allowlist",
+			allowList: dynamic.IPAllowList{
+				AppendAllowLists: []string{"not-allowlist"},
 			},
 			expectedError: true,
 		},
@@ -36,7 +63,7 @@ func TestNewIPAllowLister(t *testing.T) {
 			t.Parallel()
 
 			next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			allowLister, err := New(t.Context(), next, test.allowList, "traefikTest")
+			allowLister, err := New(t.Context(), next, test.allowList, AllowListBuilder{}, "traefikTest")
 
 			if test.expectedError {
 				assert.Error(t, err)
@@ -64,6 +91,14 @@ func TestIPAllowLister_ServeHTTP(t *testing.T) {
 			expected:   200,
 		},
 		{
+			desc: "authorized with append allowlist",
+			allowList: dynamic.IPAllowList{
+				AppendAllowLists: []string{"other-allowlist"},
+			},
+			remoteAddr: "20.20.20.20:1234",
+			expected:   200,
+		},
+		{
 			desc: "non authorized with remote address",
 			allowList: dynamic.IPAllowList{
 				SourceRange: []string{"20.20.20.20"},
@@ -78,7 +113,7 @@ func TestIPAllowLister_ServeHTTP(t *testing.T) {
 			t.Parallel()
 
 			next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			allowLister, err := New(t.Context(), next, test.allowList, "traefikTest")
+			allowLister, err := New(t.Context(), next, test.allowList, AllowListBuilder{}, "traefikTest")
 			require.NoError(t, err)
 
 			recorder := httptest.NewRecorder()

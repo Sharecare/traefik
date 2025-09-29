@@ -895,6 +895,20 @@
               </div>
             </div>
           </q-card-section>
+          <!-- EXTRA FIELDS FROM MIDDLEWARES - [ipAllowList] - appendAllowLists -->
+          <q-card-section v-if="middleware.ipAllowList">
+            <div class="row items-start no-wrap">
+              <div class="col">
+                <div class="text-subtitle2">Append Allow Lists</div>
+                <q-chip
+                  v-for="(mi, key) in exData(middleware).appendAllowLists" :key="key"
+                  dense
+                  class="app-chip app-chip-green">
+                  {{ mi }}
+                </q-chip>
+              </div>
+            </div>
+          </q-card-section>
           <!-- EXTRA FIELDS FROM MIDDLEWARES - [ipAllowList] - ipStrategy -->
           <q-card-section v-if="middleware.ipAllowList">
             <div class="row items-start">

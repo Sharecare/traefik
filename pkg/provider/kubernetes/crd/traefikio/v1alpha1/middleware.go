@@ -33,7 +33,7 @@ type MiddlewareSpec struct {
 	ReplacePathRegex  *dynamic.ReplacePathRegex  `json:"replacePathRegex,omitempty"`
 	Chain             *Chain                     `json:"chain,omitempty"`
 	IPWhiteList       *IPWhiteList               `json:"ipWhiteList,omitempty"`
-	IPAllowList       *dynamic.IPAllowList       `json:"ipAllowList,omitempty"`
+	IPAllowList       *IPAllowList               `json:"ipAllowList,omitempty"`
 	Headers           *dynamic.Headers           `json:"headers,omitempty"`
 	Errors            *ErrorPage                 `json:"errors,omitempty"`
 	RateLimit         *RateLimit                 `json:"rateLimit,omitempty"`
@@ -93,6 +93,15 @@ type CircuitBreaker struct {
 // IPWhiteList holds the ip white list configuration.
 type IPWhiteList struct {
 	AppendWhiteLists []MiddlewareRef     `json:"appendWhiteLists,omitempty"`
+	SourceRange      []string            `json:"sourceRange,omitempty"`
+	IPStrategy       *dynamic.IPStrategy `json:"ipStrategy,omitempty"`
+}
+
+// +k8s:deepcopy-gen=true
+
+// IPAllowList holds the ip white list configuration.
+type IPAllowList struct {
+	AppendAllowLists []MiddlewareRef     `json:"appendAllowLists,omitempty"`
 	SourceRange      []string            `json:"sourceRange,omitempty"`
 	IPStrategy       *dynamic.IPStrategy `json:"ipStrategy,omitempty"`
 }

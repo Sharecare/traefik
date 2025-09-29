@@ -1239,11 +1239,24 @@ spec:
                     type: object
                 type: object
               ipAllowList:
-                description: |-
-                  IPAllowList holds the IP allowlist middleware configuration.
-                  This middleware limits allowed requests based on the client IP.
-                  More info: https://doc.traefik.io/traefik/v2.11/middlewares/http/ipallowlist/
+                description: IPAllowList holds the ip white list configuration.
                 properties:
+                  appendAllowLists:
+                    items:
+                      description: MiddlewareRef is a reference to a Middleware resource.
+                      properties:
+                        name:
+                          description: Name defines the name of the referenced Middleware
+                            resource.
+                          type: string
+                        namespace:
+                          description: Namespace defines the namespace of the referenced
+                            Middleware resource.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
                   ipStrategy:
                     description: |-
                       IPStrategy holds the IP strategy configuration used by Traefik to determine the client IP.
@@ -1262,18 +1275,12 @@ spec:
                         type: array
                     type: object
                   sourceRange:
-                    description: SourceRange defines the set of allowed IPs (or ranges
-                      of allowed IPs by using CIDR notation).
                     items:
                       type: string
                     type: array
                 type: object
               ipWhiteList:
-                description: |-
-                  IPWhiteList holds the IP whitelist middleware configuration.
-                  This middleware limits allowed requests based on the client IP.
-                  More info: https://doc.traefik.io/traefik/v2.11/middlewares/http/ipwhitelist/
-                  Deprecated: please use IPAllowList instead.
+                description: IPWhiteList holds the ip white list configuration.
                 properties:
                   appendWhiteLists:
                     items:
@@ -1309,8 +1316,6 @@ spec:
                         type: array
                     type: object
                   sourceRange:
-                    description: SourceRange defines the set of allowed IPs (or ranges
-                      of allowed IPs by using CIDR notation). Required.
                     items:
                       type: string
                     type: array
@@ -3685,11 +3690,24 @@ spec:
                     type: object
                 type: object
               ipAllowList:
-                description: |-
-                  IPAllowList holds the IP allowlist middleware configuration.
-                  This middleware limits allowed requests based on the client IP.
-                  More info: https://doc.traefik.io/traefik/v2.11/middlewares/http/ipallowlist/
+                description: IPAllowList holds the ip white list configuration.
                 properties:
+                  appendAllowLists:
+                    items:
+                      description: MiddlewareRef is a reference to a Middleware resource.
+                      properties:
+                        name:
+                          description: Name defines the name of the referenced Middleware
+                            resource.
+                          type: string
+                        namespace:
+                          description: Namespace defines the namespace of the referenced
+                            Middleware resource.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
                   ipStrategy:
                     description: |-
                       IPStrategy holds the IP strategy configuration used by Traefik to determine the client IP.
@@ -3708,18 +3726,12 @@ spec:
                         type: array
                     type: object
                   sourceRange:
-                    description: SourceRange defines the set of allowed IPs (or ranges
-                      of allowed IPs by using CIDR notation).
                     items:
                       type: string
                     type: array
                 type: object
               ipWhiteList:
-                description: |-
-                  IPWhiteList holds the IP whitelist middleware configuration.
-                  This middleware limits allowed requests based on the client IP.
-                  More info: https://doc.traefik.io/traefik/v2.11/middlewares/http/ipwhitelist/
-                  Deprecated: please use IPAllowList instead.
+                description: IPWhiteList holds the ip white list configuration.
                 properties:
                   appendWhiteLists:
                     items:
@@ -3755,8 +3767,6 @@ spec:
                         type: array
                     type: object
                   sourceRange:
-                    description: SourceRange defines the set of allowed IPs (or ranges
-                      of allowed IPs by using CIDR notation). Required.
                     items:
                       type: string
                     type: array

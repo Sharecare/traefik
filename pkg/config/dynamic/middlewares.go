@@ -391,8 +391,8 @@ func (s *IPStrategy) Get() (ip.Strategy, error) {
 // More info: https://doc.traefik.io/traefik/v2.11/middlewares/http/ipwhitelist/
 // Deprecated: please use IPAllowList instead.
 type IPWhiteList struct {
-	// SourceRange defines the set of allowed IPs (or ranges of allowed IPs by using CIDR notation). Required.
 	AppendWhiteLists []string    `json:"appendWhiteLists,omitempty" toml:"appendWhiteLists,omitempty" yaml:"appendWhiteLists,omitempty"`
+	// SourceRange defines the set of allowed IPs (or ranges of allowed IPs by using CIDR notation). Required.
 	SourceRange      []string    `json:"sourceRange,omitempty" toml:"sourceRange,omitempty" yaml:"sourceRange,omitempty"`
 	IPStrategy       *IPStrategy `json:"ipStrategy,omitempty" toml:"ipStrategy,omitempty" yaml:"ipStrategy,omitempty" label:"allowEmpty" file:"allowEmpty" kv:"allowEmpty" export:"true"`
 }
@@ -403,6 +403,7 @@ type IPWhiteList struct {
 // This middleware limits allowed requests based on the client IP.
 // More info: https://doc.traefik.io/traefik/v2.11/middlewares/http/ipallowlist/
 type IPAllowList struct {
+	AppendAllowLists []string    `json:"appendAllowLists,omitempty" toml:"appendAllowLists,omitempty" yaml:"appendAllowLists,omitempty"`
 	// SourceRange defines the set of allowed IPs (or ranges of allowed IPs by using CIDR notation).
 	SourceRange []string    `json:"sourceRange,omitempty" toml:"sourceRange,omitempty" yaml:"sourceRange,omitempty"`
 	IPStrategy  *IPStrategy `json:"ipStrategy,omitempty" toml:"ipStrategy,omitempty" yaml:"ipStrategy,omitempty" label:"allowEmpty" file:"allowEmpty" kv:"allowEmpty" export:"true"`
