@@ -74,7 +74,7 @@ jobs:
         run: tar xvf webui.tar.gz
 
       - name: Set version
-        run: echo "VERSION=${GITHUB_REF#refs/*/}-WL" >> $GITHUB_ENV
+        run: echo "VERSION=${GITHUB_REF#refs/*/}-AL" >> $GITHUB_ENV
 
       - name: Build
         run: make binary
