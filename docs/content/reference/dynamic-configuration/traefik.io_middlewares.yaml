@@ -660,6 +660,22 @@ spec:
                   More info: https://doc.traefik.io/traefik/v2.11/middlewares/http/ipwhitelist/
                   Deprecated: please use IPAllowList instead.
                 properties:
+                  appendWhiteLists:
+                    items:
+                      description: MiddlewareRef is a reference to a Middleware resource.
+                      properties:
+                        name:
+                          description: Name defines the name of the referenced Middleware
+                            resource.
+                          type: string
+                        namespace:
+                          description: Namespace defines the namespace of the referenced
+                            Middleware resource.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
                   ipStrategy:
                     description: |-
                       IPStrategy holds the IP strategy configuration used by Traefik to determine the client IP.
