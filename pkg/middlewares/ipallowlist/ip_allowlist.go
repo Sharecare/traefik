@@ -8,6 +8,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/traefik/traefik/v3/pkg/config/dynamic"
+	"github.com/traefik/traefik/v3/pkg/config/runtime"
 	"github.com/traefik/traefik/v3/pkg/ip"
 	"github.com/traefik/traefik/v3/pkg/middlewares"
 	"github.com/traefik/traefik/v3/pkg/middlewares/observability"
@@ -27,11 +28,25 @@ type ipAllowLister struct {
 }
 
 // New builds a new IPAllowLister given a list of CIDR-Strings to allow.
-func New(ctx context.Context, next http.Handler, config dynamic.IPAllowList, name string) (http.Handler, error) {
+func New(ctx context.Context, next http.Handler, config dynamic.IPAllowList, configs map[string]*runtime.MiddlewareInfo, name string) (http.Handler, error) {
 	logger := middlewares.GetLogger(ctx, name, typeName)
 	logger.Debug().Msg("Creating middleware")
 
-	if len(config.SourceRange) == 0 {
+	sourceRange := config.SourceRange
+
+	for _, allowlistName := range config.AppendAllowLists {
+		if allowlist, exists := configs[allowlistName]; exists {
+			if allowlist.IPAllowList != nil {
+				sourceRange = append(sourceRange, allowlist.IPAllowList.SourceRange...)
+			} else {
+				logger.Error().Msgf("middleware is not a allowlist: %s", allowlistName)
+			}
+		} else {
+			logger.Error().Msgf("middleware does not exist: %s", allowlistName)
+		}
+	}
+
+	if len(sourceRange) == 0 {
 		return nil, errors.New("sourceRange is empty, IPAllowLister not created")
 	}
 
@@ -43,9 +58,9 @@ func New(ctx context.Context, next http.Handler, config dynamic.IPAllowList, nam
 		return nil, fmt.Errorf("invalid HTTP status code %d", rejectStatusCode)
 	}
 
-	checker, err := ip.NewChecker(config.SourceRange)
+	checker, err := ip.NewChecker(sourceRange)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse CIDRs %s: %w", config.SourceRange, err)
+		return nil, fmt.Errorf("cannot parse CIDRs %s: %w", sourceRange, err)
 	}
 
 	strategy, err := config.IPStrategy.Get()
@@ -53,7 +68,7 @@ func New(ctx context.Context, next http.Handler, config dynamic.IPAllowList, nam
 		return nil, err
 	}
 
-	logger.Debug().Msgf("Setting up IPAllowLister with sourceRange: %s", config.SourceRange)
+	logger.Debug().Msgf("Setting up IPAllowLister with sourceRange: %s", sourceRange)
 
 	return &ipAllowLister{
 		strategy:         strategy,

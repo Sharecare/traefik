@@ -260,8 +260,15 @@ func (b *Builder) buildConstructor(ctx context.Context, middlewareName string) (
 		if middleware != nil {
 			return nil, badConf
 		}
+
+		var qualifiedAllowListNames []string
+		for _, name := range config.IPAllowList.AppendAllowLists {
+			qualifiedAllowListNames = append(qualifiedAllowListNames, provider.GetQualifiedName(ctx, name))
+		}
+		config.IPAllowList.AppendAllowLists = qualifiedAllowListNames
+
 		middleware = func(next http.Handler) (http.Handler, error) {
-			return ipallowlist.New(ctx, next, *config.IPAllowList, middlewareName)
+			return ipallowlist.New(ctx, next, *config.IPAllowList, b.configs, middlewareName)
 		}
 	}
 
