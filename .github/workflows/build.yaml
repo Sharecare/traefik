@@ -8,49 +8,20 @@ on:
 env:
   GO_VERSION: '1.24'
   CGO_ENABLED: 0
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-  REPO: ghcr.io/sharecare/traefik
-  VERSION: latest
 
 jobs:
 
   build-webui:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: webui/.nvmrc
-          cache: yarn
-          cache-dependency-path: webui/yarn.lock
-
-      - name: Build webui
-        working-directory: ./webui
-        run: |
-          yarn install
-          yarn build
-
-      - name: Package webui
-        run: |
-          tar czvf webui.tar.gz ./webui/static/
-
-      - name: Artifact webui
-        uses: actions/upload-artifact@v4
-        with:
-          name: webui.tar.gz
-          path: webui.tar.gz
+    uses: ./.github/workflows/template-webui.yaml
 
   build-binary:
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+          - os: linux
+            arch: amd64
     needs:
       - build-webui
 
@@ -62,8 +33,11 @@ jobs:
 
       - name: Set up Go ${{ env.GO_VERSION }}
         uses: actions/setup-go@v5
+        env:
+          ImageOS: ${{ matrix.os }}-${{ matrix.arch }}-${{ matrix.goarm }}
         with:
           go-version: ${{ env.GO_VERSION }}
+          check-latest: true
 
       - name: Artifact webui
         uses: actions/download-artifact@v4
@@ -71,12 +45,18 @@ jobs:
           name: webui.tar.gz
 
       - name: Untar webui
-        run: tar xvf webui.tar.gz
+        run: |
+          tar xvf webui.tar.gz
+          rm webui.tar.gz
 
       - name: Set version
         run: echo "VERSION=${GITHUB_REF#refs/*/}-AL" >> $GITHUB_ENV
 
       - name: Build
+        env:
+          GOOS: ${{ matrix.os }}
+          GOARCH: ${{ matrix.arch }}
+          GOARM: ${{ matrix.goarm }}
         run: make binary
 
       - name: Tar binary
