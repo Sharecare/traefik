@@ -310,7 +310,7 @@ func (p *Provider) loadConfigurationFromCRD(ctx context.Context, client Client) 
 			ReplacePathRegex:  middleware.Spec.ReplacePathRegex,
 			Chain:             createChainMiddleware(ctxMid, middleware.Namespace, middleware.Spec.Chain),
 			IPWhiteList:       middleware.Spec.IPWhiteList,
-			IPAllowList:       middleware.Spec.IPAllowList,
+			IPAllowList:       createIPAllowListMiddleware(ctxMid, middleware.Namespace, middleware.Spec.IPAllowList),
 			Headers:           middleware.Spec.Headers,
 			Errors:            errorPage,
 			RateLimit:         rateLimit,
@@ -1216,6 +1216,30 @@ func createChainMiddleware(ctx context.Context, namespace string, chain *traefik
 		mds = append(mds, makeID(ns, mi.Name))
 	}
 	return &dynamic.Chain{Middlewares: mds}
+}
+
+func createIPAllowListMiddleware(ctx context.Context, namespace string, allowlist *traefikv1alpha1.IPAllowList) *dynamic.IPAllowList {
+	if allowlist == nil {
+		return nil
+	}
+
+	var mds []string
+	for _, mi := range allowlist.AppendAllowLists {
+		if strings.Contains(mi.Name, providerNamespaceSeparator) {
+			if len(mi.Namespace) > 0 {
+				log.Ctx(ctx).Warn().Msgf("namespace %q is ignored in cross-provider context", mi.Namespace)
+			}
+			mds = append(mds, mi.Name)
+			continue
+		}
+
+		ns := mi.Namespace
+		if len(ns) == 0 {
+			ns = namespace
+		}
+		mds = append(mds, makeID(ns, mi.Name))
+	}
+	return &dynamic.IPAllowList{AppendAllowLists: mds, SourceRange: allowlist.SourceRange, IPStrategy: allowlist.IPStrategy}
 }
 
 func buildTLSOptions(ctx context.Context, client Client) map[string]tls.Options {

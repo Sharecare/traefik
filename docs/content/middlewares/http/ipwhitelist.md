@@ -64,6 +64,61 @@ http:
 _Required_
 
 The `sourceRange` option sets the allowed IPs (or ranges of allowed IPs by using CIDR notation).
+### `appendAllowLists`
+
+The `appendAllowLists` option defines other allowlists to combine with this one. This allows modular allowlisting
+
+```yaml tab="Docker"
+# Accepts request from defined IPs in another allowlist
+labels:
+  - "traefik.http.middlewares.test-ipallowlist.ipallowlist.appendallowlists=other-allowlist"
+```
+
+```yaml tab="Kubernetes"
+# Allowlisting appending IPs in other-allowlist
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: testIPallowlist
+spec:
+  ipAllowList:
+    appendAllowList:
+    - name: other-allowlist
+```
+
+```yaml tab="Consul Catalog"
+# Accepts request from defined IPs in another allowlist
+- "traefik.http.middlewares.test-ipallowlist.ipallowlist.appendallowlists=other-allowlist"
+```
+
+```json tab="Marathon"
+"labels": {
+  "traefik.http.middlewares.test-ipallowlist.ipallowlist.appendallowlists=other-allowlist.7"
+}
+```
+
+```yaml tab="Rancher"
+# Accepts request from defined IPs in another allowlist
+labels:
+  - "traefik.http.middlewares.test-ipallowlist.ipallowlist.appendallowlists=other-allowlist"
+```
+
+```toml tab="File (TOML)"
+# Accepts request from defined IPs in another allowlist
+[http.middlewares]
+  [http.middlewares.test-ipallowlist.ipAllowList]
+    appendAllowLists = ["other-allowlist"]
+```
+
+```yaml tab="File (YAML)"
+# Accepts request from defined IPs in another allowlist
+http:
+  middlewares:
+    test-ipallowlist:
+      ipAllowList:
+        appendAllowLists:
+          - other-allowlist
+```
 
 ### `ipStrategy`
 
