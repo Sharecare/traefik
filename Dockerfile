@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1.2
 FROM alpine:3.23
 
+RUN apk upgrade --no-cache
 RUN apk add --no-cache --no-progress ca-certificates tzdata
 
 ARG TARGETPLATFORM
