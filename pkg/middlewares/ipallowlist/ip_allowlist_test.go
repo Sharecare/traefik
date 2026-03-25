@@ -8,9 +8,16 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/traefik/traefik/v3/pkg/config/dynamic"
+	"github.com/traefik/traefik/v3/pkg/config/runtime"
 )
 
 func TestNewIPAllowLister(t *testing.T) {
+	middlewareConfigs := make(map[string]*runtime.MiddlewareInfo)
+
+	allowlist := dynamic.Middleware{IPAllowList: &dynamic.IPAllowList{SourceRange: []string{"20.20.20.20"}}}
+	middlewareConfigs["other-allowlist"] = &runtime.MiddlewareInfo{Middleware: &allowlist}
+	middlewareConfigs["not-allowlist"] = &runtime.MiddlewareInfo{Middleware: &dynamic.Middleware{}}
+
 	testCases := []struct {
 		desc          string
 		allowList     dynamic.IPAllowList
@@ -20,6 +27,20 @@ func TestNewIPAllowLister(t *testing.T) {
 			desc: "invalid IP",
 			allowList: dynamic.IPAllowList{
 				SourceRange: []string{"foo"},
+			},
+			expectedError: true,
+		},
+		{
+			desc: "non-existent append allowlist",
+			allowList: dynamic.IPAllowList{
+				AppendAllowLists: []string{"bad-allowlist"},
+			},
+			expectedError: true,
+		},
+		{
+			desc: "invalid append allowlist",
+			allowList: dynamic.IPAllowList{
+				AppendAllowLists: []string{"not-allowlist"},
 			},
 			expectedError: true,
 		},
@@ -44,7 +65,7 @@ func TestNewIPAllowLister(t *testing.T) {
 			t.Parallel()
 
 			next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			allowLister, err := New(t.Context(), next, test.allowList, "traefikTest")
+			allowLister, err := New(t.Context(), next, test.allowList, middlewareConfigs, "traefikTest")
 
 			if test.expectedError {
 				assert.Error(t, err)
@@ -57,6 +78,12 @@ func TestNewIPAllowLister(t *testing.T) {
 }
 
 func TestIPAllowLister_ServeHTTP(t *testing.T) {
+	middlewareConfigs := make(map[string]*runtime.MiddlewareInfo)
+
+	allowlist := dynamic.Middleware{IPAllowList: &dynamic.IPAllowList{SourceRange: []string{"20.20.20.20"}}}
+	middlewareConfigs["other-allowlist"] = &runtime.MiddlewareInfo{Middleware: &allowlist}
+	middlewareConfigs["not-allowlist"] = &runtime.MiddlewareInfo{Middleware: &dynamic.Middleware{}}
+
 	testCases := []struct {
 		desc       string
 		allowList  dynamic.IPAllowList
@@ -67,6 +94,14 @@ func TestIPAllowLister_ServeHTTP(t *testing.T) {
 			desc: "authorized with remote address",
 			allowList: dynamic.IPAllowList{
 				SourceRange: []string{"20.20.20.20"},
+			},
+			remoteAddr: "20.20.20.20:1234",
+			expected:   200,
+		},
+		{
+			desc: "authorized with append allowlist",
+			allowList: dynamic.IPAllowList{
+				AppendAllowLists: []string{"other-allowlist"},
 			},
 			remoteAddr: "20.20.20.20:1234",
 			expected:   200,
@@ -104,7 +139,7 @@ func TestIPAllowLister_ServeHTTP(t *testing.T) {
 			t.Parallel()
 
 			next := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
-			allowLister, err := New(t.Context(), next, test.allowList, "traefikTest")
+			allowLister, err := New(t.Context(), next, test.allowList, middlewareConfigs, "traefikTest")
 			require.NoError(t, err)
 
 			recorder := httptest.NewRecorder()
