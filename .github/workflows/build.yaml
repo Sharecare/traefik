@@ -1,51 +1,33 @@
 name: Build Binaries
 
 on:
-  pull_request:
-    branches:
-      - '*'
-    paths-ignore:
-      - 'docs/**'
-      - '**.md'
-      - 'script/gcg/**'
+  push:
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
 
 env:
   CGO_ENABLED: 0
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+  REPO: ghcr.io/sharecare/traefik
+  VERSION: latest
 
 jobs:
 
   build-webui:
     uses: ./.github/workflows/template-webui.yaml
 
-  build:
+  build-binary:
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     strategy:
       matrix:
-        os: [ darwin, freebsd, linux, openbsd, windows ]
-        arch: [ amd64, arm64 ]
         include:
-          - os: freebsd
-            arch: 386
           - os: linux
-            arch: 386
-          - os: linux
-            arch: arm
-            goarm: 6
-          - os: linux
-            arch: arm
-            goarm: 7
-          - os: linux
-            arch: ppc64le
-          - os: linux
-            arch: riscv64
-          - os: linux
-            arch: s390x
-          - os: openbsd
-            arch: 386
-          - os: windows
-            arch: 386
+            arch: amd64
     needs:
       - build-webui
 
@@ -73,9 +55,65 @@ jobs:
           tar xvf webui.tar.gz
           rm webui.tar.gz
 
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF#refs/*/}-AL" >> $GITHUB_ENV
+
       - name: Build
         env:
           GOOS: ${{ matrix.os }}
           GOARCH: ${{ matrix.arch }}
           GOARM: ${{ matrix.goarm }}
         run: make binary
+
+      - name: Tar binary
+        run: |
+          tar czvf traefik-binary.tar.gz ./dist
+
+      - name: Artifact binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: traefik-binary.tar.gz
+          path: traefik-binary.tar.gz
+
+  build-docker:
+    runs-on: ubuntu-latest
+    needs:
+      - build-binary
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Set version
+        run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+      - name: Artifact binary
+        uses: actions/download-artifact@v4
+        with:
+          name: traefik-binary.tar.gz
+
+      - name: Untar binary
+        run: tar xvf traefik-binary.tar.gz
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the Docker image
+        run: |
+          docker build . --tag ${{ env.REPO }}:${{ env.VERSION }}
+          docker push ${{ env.REPO }}:${{ env.VERSION }}
