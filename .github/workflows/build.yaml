@@ -70,7 +70,7 @@ jobs:
           tar czvf traefik-binary.tar.gz ./dist
 
       - name: Artifact binary
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: traefik-binary.tar.gz
           path: traefik-binary.tar.gz
@@ -86,12 +86,12 @@ jobs:
 
     steps:
       - name: Check out code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
 
@@ -99,7 +99,7 @@ jobs:
         run: echo "VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
       - name: Artifact binary
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: traefik-binary.tar.gz
 
@@ -107,7 +107,7 @@ jobs:
         run: tar xvf traefik-binary.tar.gz
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
