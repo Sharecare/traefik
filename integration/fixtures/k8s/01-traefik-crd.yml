@@ -1796,6 +1796,22 @@ spec:
                   This middleware limits allowed requests based on the client IP.
                   More info: https://doc.traefik.io/traefik/v3.7/middlewares/http/ipallowlist/
                 properties:
+                  appendAllowLists:
+                    items:
+                      description: MiddlewareRef is a reference to a Middleware resource.
+                      properties:
+                        name:
+                          description: Name defines the name of the referenced Middleware
+                            resource.
+                          type: string
+                        namespace:
+                          description: Namespace defines the namespace of the referenced
+                            Middleware resource.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
                   ipStrategy:
                     description: |-
                       IPStrategy holds the IP strategy configuration used by Traefik to determine the client IP.

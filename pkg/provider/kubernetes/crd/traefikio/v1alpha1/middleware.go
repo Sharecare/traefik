@@ -34,7 +34,7 @@ type MiddlewareSpec struct {
 	Chain            *Chain                    `json:"chain,omitempty"`
 	// Deprecated: please use IPAllowList instead.
 	IPWhiteList       *dynamic.IPWhiteList       `json:"ipWhiteList,omitempty"`
-	IPAllowList       *dynamic.IPAllowList       `json:"ipAllowList,omitempty"`
+	IPAllowList       *IPAllowList               `json:"ipAllowList,omitempty"`
 	Headers           *dynamic.Headers           `json:"headers,omitempty"`
 	EncodedCharacters *dynamic.EncodedCharacters `json:"encodedCharacters,omitempty"`
 	Errors            *ErrorPage                 `json:"errors,omitempty"`
@@ -143,6 +143,15 @@ type CircuitBreaker struct {
 type Chain struct {
 	// Middlewares is the list of MiddlewareRef which composes the chain.
 	Middlewares []MiddlewareRef `json:"middlewares,omitempty"`
+}
+
+// +k8s:deepcopy-gen=true
+
+// IPAllowList holds the ip white list configuration.
+type IPAllowList struct {
+	AppendAllowLists []MiddlewareRef     `json:"appendAllowLists,omitempty"`
+	SourceRange      []string            `json:"sourceRange,omitempty"`
+	IPStrategy       *dynamic.IPStrategy `json:"ipStrategy,omitempty"`
 }
 
 // +k8s:deepcopy-gen=true
